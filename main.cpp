@@ -1,26 +1,29 @@
 #include <iostream>
+#include <sstream>
 
 int main()
 {
-    int image_width = 256;
-    int image_height = 256;
+    constexpr int image_width = 256;
+    constexpr int image_height = 256;
+    constexpr float inv_width = 1.0f / image_width;
+    constexpr float inv_height = 1.0f / image_height;
 
-    std::cout << "P3\n"
-              << image_width << ' ' << image_height << "\n255\n";
+    std::ostringstream oss;
+    oss << "P3\n"
+        << image_width << ' ' << image_height << "\n256\n";
 
     for (int j = 0; j < image_height; j++)
     {
+        float g = j * inv_height;
+        int ig = static_cast<int>(g * 256);
         for (int i = 0; i < image_width; i++)
         {
-            double r = double(i) / (image_width - 1);
-            double g = double(j) / (image_height - 1);
-            double b = 0.1;
-
-            int ir = int(255.999 * r);
-            int ig = int(255.999 * g);
-            int ib = int(255.999 * b);
-
-            std::cout << ir << ' ' << ig << ' ' << ib << '\n';
+            float r = i * inv_width;
+            int ir = static_cast<int>(r * 256);
+            float b = 1.0;
+            int ib = static_cast<int>(b * 256);
+            oss << ir << ' ' << ig << ' ' << ib << '\n';
         }
     }
+    std::cout << oss.str();
 }
