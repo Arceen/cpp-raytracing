@@ -3,8 +3,8 @@
 
 int main()
 {
-    constexpr int image_width = 256;
-    constexpr int image_height = 256;
+    constexpr int image_width = 25600;
+    constexpr int image_height = 25600;
     constexpr float inv_width = 1.0f / image_width;
     constexpr float inv_height = 1.0f / image_height;
 
@@ -14,6 +14,7 @@ int main()
 
     for (int j = 0; j < image_height; j++)
     {
+        std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
         float g = j * inv_height;
         int ig = static_cast<int>(g * 256);
         for (int i = 0; i < image_width; i++)
