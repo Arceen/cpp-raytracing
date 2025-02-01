@@ -1,29 +1,53 @@
+#include "color.h"
+#include "vec3.h"
+#include "ray.h"
+
 #include <iostream>
 #include <sstream>
 
+color ray_color(const ray &r)
+{
+    vec3 unit_direction = unit_vector(r.direction());
+    double a = 0.5 * (unit_direction.y() + 1.0);
+    return (1.0 - a) * color(1, 1, 1) + a * color(0.5, 0.7, 1);
+}
+
 int main()
 {
-    constexpr int image_width = 25600;
-    constexpr int image_height = 25600;
-    constexpr float inv_width = 1.0f / image_width;
-    constexpr float inv_height = 1.0f / image_height;
+    double aspect_ratio = 16.0 / 9.0;
+    int image_width = 400;
+    int image_height = static_cast<int>(image_width / aspect_ratio);
+    image_height = (image_height < 1) ? 1 : image_height;
+
+    double focal_length = 1.0;
+    double viewport_height = 2.0;
+    double viewport_width = viewport_height * (double(image_width) / image_height);
+    vec3 camera_center = point3(0, 0, 0);
+
+    vec3 viewport_u = vec3(viewport_width, 0, 0);
+    vec3 viewport_v = vec3(0, -viewport_height, 0);
+
+    vec3 pixel_delta_u = viewport_u / image_width;
+    vec3 pixel_delta_v = viewport_v / image_height;
+
+    vec3 viewport_upper_left = camera_center - vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
+    vec3 pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
     std::ostringstream oss;
     oss << "P3\n"
-        << image_width << ' ' << image_height << "\n256\n";
+        << image_width << ' ' << image_height << "\n255\n";
 
     for (int j = 0; j < image_height; j++)
     {
         std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-        float g = j * inv_height;
-        int ig = static_cast<int>(g * 256);
         for (int i = 0; i < image_width; i++)
         {
-            float r = i * inv_width;
-            int ir = static_cast<int>(r * 256);
-            float b = 1.0;
-            int ib = static_cast<int>(b * 256);
-            oss << ir << ' ' << ig << ' ' << ib << '\n';
+            vec3 pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+            auto ray_direction = pixel_center - camera_center;
+            ray r(camera_center, ray_direction);
+
+            color pixel_color = ray_color(r);
+            write_color(oss, pixel_color);
         }
     }
     std::cout << oss.str();
